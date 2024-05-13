@@ -1,0 +1,258 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+#include <MFRC522.h>
+
+
+#define SS_PIN_1 10    
+#define RST_PIN_1 8   
+
+
+#define SS_PIN_2 6    
+#define RST_PIN_2 7   
+
+#define SERVO_1_PIN 4 
+#define SERVO_2_PIN 5 
+
+#define FARE_AMOUNT 33
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);  
+Servo servo1;  // Define servo1
+Servo servo2;  // Define servo2
+
+MFRC522 mfrc522_1(SS_PIN_1, RST_PIN_1); 
+MFRC522 mfrc522_2(SS_PIN_2, RST_PIN_2); 
+
+bool temp = false;  
+bool temp1 = false; 
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();                      
+  lcd.backlight();                 
+
+  SPI.begin(); 
+  mfrc522_1.PCD_Init(); 
+  mfrc522_2.PCD_Init(); 
+  
+  servo1.attach(SERVO_1_PIN);      
+  servo2.attach(SERVO_2_PIN);      
+
+  lcd.setCursor(0, 0);
+  lcd.print("Welcome to Metro");
+  Serial.println("Welcome to Metro");
+}
+
+void loop() {
+  
+  if (mfrc522_1.PICC_IsNewCardPresent() && mfrc522_1.PICC_ReadCardSerial()) {
+    Serial.println("New card detected on RFID reader 1"); 
+    operateServo1(); 
+    displayCardDetails(); 
+    displayFare(); 
+    delay(2000); 
+    lcd.clear(); 
+  }
+
+  
+  if (mfrc522_2.PICC_IsNewCardPresent() && mfrc522_2.PICC_ReadCardSerial()) {
+    Serial.println("New card detected on RFID reader 2"); 
+    operateServo2(); 
+    displayCardDetails(); 
+    displayFare(); 
+    delay(2000); 
+    lcd.clear(); 
+  }
+}
+
+void operateServo1() {
+  servo1.write(90);   
+  delay(1000);
+  servo1.write(0);    
+  temp = true;
+  Serial.println("Servo 1 activated"); 
+}
+
+void operateServo2() {
+  servo2.write(90);   
+  delay(1000);
+  servo2.write(0);    
+  temp1 = true;
+  Serial.println("Servo 2 activated"); 
+}
+
+void displayCardDetails() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Card UID:");
+  Serial.print("Card UID:");
+  for (byte i = 0; i < mfrc522_1.uid.size; i++) {
+    lcd.print(mfrc522_1.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    lcd.print(mfrc522_1.uid.uidByte[i], HEX);
+    Serial.print(mfrc522_1.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    Serial.print(mfrc522_1.uid.uidByte[i], HEX);
+  }
+  Serial.println();
+}
+
+void displayFare() {
+  if ((temp && temp1) || (!temp && !temp1)) {
+    lcd.setCursor(0, 1);
+    lcd.print("Fare: $");
+    lcd.print(FARE_AMOUNT);
+    lcd.setCursor(0, 1);
+    lcd.print("Thank you!");
+    Serial.print("Fare: $");
+    Serial.print(FARE_AMOUNT);
+    Serial.println("Thank you!");
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("Fare: $0");
+    Serial.println("Fare: $0");
+  }
+}
+
+
+void addFare() {
+  
+  Serial.println("Fare added to the card");
+}
+
+
+void deductFare() {
+ 
+  Serial.println("Fare deducted from the card");
+}
+
+
+void displayBalance() {
+  
+  Serial.println("Remaining balance: $50");
+}
+
+// Function to display station information
+void displayStationInfo() {
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Station: Central");
+  lcd.setCursor(0, 1);
+  lcd.print("Next: North");
+}
+
+
+bool isCardRegistered() {
+  
+  return true;
+}
+
+
+void registerCard() {
+ 
+  Serial.println("New card registered");
+}
+
+
+void displayHelp() {
+ 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Help:");
+  lcd.setCursor(0, 1);
+  lcd.print("Contact support");
+}
+
+
+void displaySystemInfo() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("System Info:");
+  lcd.setCursor(0, 1);
+  lcd.print("Version 1.0");
+  delay(3000);
+}
+
+
+void performDiagnostics() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Performing");
+  lcd.setCursor(0, 1);
+  lcd.print("Diagnostics...");
+  delay(2000); 
+  lcd.clear();
+  lcd.print("No issues found");
+  delay(2000); 
+}
+
+
+void activateEmergencyMode() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("EMERGENCY MODE");
+  lcd.setCursor(0, 1);
+  lcd.print("Contact Support");
+
+}
+
+
+void deactivateEmergencyMode() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Emergency Mode");
+  lcd.setCursor(0, 1);
+  lcd.print("Deactivated");
+  delay(2000); // Display for 2 seconds
+}
+
+
+void updateSoftware() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Updating Software");
+ 
+  lcd.setCursor(0, 1);
+  lcd.print("Complete!");
+  delay(2000); 
+}
+
+
+void displayPreferences() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("User Preferences:");
+  lcd.setCursor(0, 1);
+  lcd.print("Language: English");
+  delay(3000);
+}
+
+void resetSystemSettings() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Resetting Settings");
+  lcd.setCursor(0, 1);
+  lcd.print("Complete!");
+  delay(2000); 
+}
+
+
+void shutDown() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Shutting Down...");
+  delay(2000); 
+}
+
+void restartSystem() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Restarting...");
+  delay(2000); 
+}
+
+void factoryReset() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Factory Reset...");
+  delay(2000); 
+}
